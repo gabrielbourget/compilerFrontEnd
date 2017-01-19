@@ -11,3 +11,13 @@ During the course of a semester at Algonquin college in the CST8152 Compilers cl
   - Analysis and categorization of series of tokens into a set grammar (parser)
   
 ##Content Summary
+The project took part in four major parts:
+  1. Buffer Structure
+  2. Character Scanner
+  3. Symbol Table
+  4. Grammar Parser
+
+##Part 1 - The Buffer
+In assignment 1, I was tasked with creating a dynamic data structure that could establish an initial capacity and growth method. Then, as it took in the characters of a text file, it would store them into the structure's allocated memory and either grow as it reached its initial capacity by a set increment, or not at all if it was fixed to a static size.
+
+###Compilation and Testing
