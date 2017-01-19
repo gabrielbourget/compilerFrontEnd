@@ -3,8 +3,10 @@ Front end of a compiler built to process a custom computer language for a course
 
 ##Introduction
 During the course of a semester at Algonquin college in the CST8152 Compilers class, I built the front end of a compiler to process a custom language designed by our professor Svillen Ranev. This was a project in which I learnt about and applied knowledge associated with:
-  - Programming in C for a large-scale project.
-  - Natural language processing.
+  - Programming in C for a large-scale project
+  - Natural language processing
+  - Bitwise manipulation of variables
+  - Dynamic memory management strategies
   - Dynamic, adaptable data structures (buffers)
   - Token generation from character analysis (scanner)
   - Creation and indexing of metadata for a computer program (symbol table)
@@ -23,7 +25,7 @@ In assignment 1, I was tasked with creating a dynamic data structure that could 
 ###Compilation and Testing
 
 ##Part 2 - The Scanner
-In assignment 2, myself and a team member built a scanner structure that could take in the stored characters in the previous buffer structure one-by-one, and classify them into tokens. These tokens involved the different types of symbols involved in the Platypus language, such as different variable identifiers, operators, and separator characters, along with useful metadata, such as values of numeric and string variables, values of the variable names, and index in a table of keywords.
+In assignment 2, myself and a team member built a scanner structure that could take in the stored characters in the previous buffer structure one-by-one, and classify them into tokens. These tokens involved the different types of symbols involved in the Platypus language, such as different variable identifiers, operators, and separator characters, along with useful metadata, such as values of numeric and string variables, values of the variable names, and index in a table of keywords. This structure can be further inspected in the token.h header file. The main program that accompanies the code for this project prints out the tokens as they are returned, but they can be stored for later analysis, as they are in later projects.
 
 The scanner was both token driven and then transition-table driven later on. At first, it discounted the possibility an incoming set of characters being either a:
   - Newline character
@@ -32,3 +34,23 @@ The scanner was both token driven and then transition-table driven later on. At 
   - Concatenation, assignment, arithmetic, or conditional operator
   - Logical operator
   - String literal
+  
+Following this, the logic structure enters a finite state machine, the transitions from state to state being governed by the transition table layed out in the table.h header file.
+
+When and end-of-file marker is reached in the source file, the scanner ceases to operate and returns control flow to the main function.
+
+###Compilation and Testing
+
+##Part 3 - The Symbol Table
+In assignment 3, I was tasked with creating a symbol table data structure, which was a managed database of the variable identifiers identified during the scanning process, along with other useful information, such as the variable name, type, initial value, and line number. The symbol table descriptor is a container structure which holds a pointer to the database of symbol table variable records, a count of how many are stored, an offset number to next STVR to be added, and a pointer to a buffer structure holding all the variable names.
+
+To capture this information at the most efficient time possible, the scanner code was modified slightly. With these modifications, when the scanner code identified a token that could be identified as either an arithmetic or string variable identifier, it was incorporated into the symbol table as the scanner token was generated. These changes can be seen in scanner.c, in the the accepting state functions for arithmetic and string variable identifiers (aa_funct02() and aa_func03()).
+
+###Compilation and Testing
+
+##Part4 - The Parser
+In assignment 4, the goal was to build a predictive, recursive descent LL(1) parser modeled after the Grammar of the Platypus language. The first part of the assignment involved taking this set of grammar rules, and modifying them (LR->LL transformations, left-factoring, and removal of left recursion) so that they may be coded in such a way to work within the specified parser specifications. Further reading on language grammars and parsing can be found in the lecture notes that I created during the course of the semester (stored in the root folder of this repository).
+
+Once the grammar was appropriately modified, I translated the production rules into functions (parser.c) which allowed the parser to move from token to token, identifying larger structures like if/else statements, for loops, and relational expressions. The tokens entered the parser structure upon encountering the starting token (the keyword PLATYPUS), and it recursively processed them until encountering the end-of-file token.
+
+###Compilation and Testing
