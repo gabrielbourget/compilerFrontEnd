@@ -18,6 +18,17 @@ The project took part in four major parts:
   4. Grammar Parser
 
 ##Part 1 - The Buffer
-In assignment 1, I was tasked with creating a dynamic data structure that could establish an initial capacity and growth method. Then, as it took in the characters of a text file, it would store them into the structure's allocated memory and either grow as it reached its initial capacity by a set increment, or not at all if it was fixed to a static size.
+In assignment 1, I was tasked with creating a dynamic data structure that could establish an initial capacity and growth method. Then, as it took in the characters of a text file, it would store them into the structure's allocated memory and either grow as it reached its initial capacity by a set increment, or not at all if it was fixed to a static size. The structure consisted of a a character array to store the characters themselves, along with a handling structure that recorded and remembered different offsets, a pointer to the character array, and flags for mode and end-of-buffer. This structure can be found in the buffer.h header file.
 
 ###Compilation and Testing
+
+##Part 2 - The Scanner
+In assignment 2, myself and a team member built a scanner structure that could take in the stored characters in the previous buffer structure one-by-one, and classify them into tokens. These tokens involved the different types of symbols involved in the Platypus language, such as different variable identifiers, operators, and separator characters, along with useful metadata, such as values of numeric and string variables, values of the variable names, and index in a table of keywords.
+
+The scanner was both token driven and then transition-table driven later on. At first, it discounted the possibility an incoming set of characters being either a:
+  - Newline character
+  - Either a space, tab, vertical tab character
+  - Separator character
+  - Concatenation, assignment, arithmetic, or conditional operator
+  - Logical operator
+  - String literal
