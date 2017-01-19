@@ -94,7 +94,7 @@ Return Value: Token (representing the corresponding token that was recognized)
 Algorithm:
 --------------------------------TOKEN DRIVEN -------------------------------------
 
--> Character a newspace character? Increase line number, and continue.
+-> Character a newline character? Increase line number, and continue.
 -> Character a whitespace or separator character?
     -> Yes: Assign token parameters and return.
 -> Character a concatenation, assignment, arithmetic or conditional operator?

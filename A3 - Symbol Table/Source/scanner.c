@@ -4,11 +4,11 @@ Compiler: Visual Studio 2013 Compiler
 Author: Brandon Keohane & Gabriel Bourget
 Course: Computer Engineering Technology
 Assignment: Assignment 2 - The Scanner
-Date: November 24th, 02016
+Date: October 27th, 2016
 Professor: Svillen Ranev
 Purpose: Implements a lexical scanner in a compiler
 Function List: char_class(), get_next_state(), iskeyword(), atool(),
-isValidInteger(), isLetter(), isDigit()
+			   isValidInteger(), isLetter(), isDigit()
 *****************************************************************************/
 
 /* The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
@@ -31,7 +31,7 @@ isValidInteger(), isLetter(), isDigit()
 /* project header files */
 #include "buffer.h"
 #include "token.h"
-#include "table.h"
+#include "tableGB.h"
 #include "stable.h"
 
 #define DEBUG  /* for conditional processing */
@@ -39,8 +39,8 @@ isValidInteger(), isLetter(), isDigit()
 
 /* Global objects - variables */
 extern Buffer * str_LTBL;						/* String literal table */
-int line;											  		/* Current line number of the source code */
-extern int scerrnum;						  	/* Defined in platy_tt.c - run-time error number */
+int line;										/* Current line number of the source code */
+extern int scerrnum;							/* Defined in platy_st.c - run-time error number */
 extern STD sym_table;
 
 /* Local(file) global objects - variables */
@@ -54,7 +54,7 @@ static long atool(char * lexeme);				/* Converts octal string to decimal value *
 static int isValidInteger(char * lexeme);		/* Checks if lexeme is a valid int */
 static int isLetter(unsigned char);				/* Checks if the character passed is a letter */
 static int isDigit(unsigned char);				/* Checks if the character passed is a digit */
-static void addAVIDToSymTable(char*, int*);     /* Utility function for adding AVID to symbol table */
+static void addAVIDToSymTable(char*,int*); /* Utility function for adding AVID to symbol table */
 
 /*****************************************************************************
 Purpose: Initializes this scanner
@@ -63,8 +63,9 @@ History/Version: v1.0
 Called Functions: b_isempty, b_setmark, b_retract_to_mark, b_reset.
 Parameters: Buffer * sc_buf - pointer to buffer
 Return Value: Returns if initialization was a success
-Algorithm: -> If buffer is empty dont bother scanning return error
-					 -> Initialize the mark, reset all parameters, and initialize line numbers
+Algorithm:
+		-> If buffer is empty dont bother scanning return error
+		-> Initialize the mark, reset all parameters, and initialize line numbers
 *****************************************************************************/
 int scanner_init(Buffer * sc_buf) {
 	if (b_isempty(sc_buf)) return EXIT_FAILURE;/*1*/
@@ -79,62 +80,62 @@ int scanner_init(Buffer * sc_buf) {
 
 /***********************************mlwpar_next_token()**************************************
 Purpose: Processes the input stream of characters, separating them into distinct lexemes
-when the rules set out in the function recognize it as a pre-defined pattern.
-Part of the processing is token driven, where patterns are recognized one at a
-time, and the other part is transition table driven. Once a pattern is found,
-key attributes and parameters about the pattern are recorded in a Token structure,
-and the Token is returned.
-Authors : Gabriel Bourget and Brandon Keohane
+		 when the rules set out in the function recognize it as a pre-defined pattern.
+		 Part of the processing is token driven, where patterns are recognized one at a
+		 time, and the other part is transition table driven. Once a pattern is found,
+		 key attributes and parameters about the pattern are recorded in a Token structure,
+		 and the Token is returned.
+Authors: Gabriel Bourget and Brandon Keohane
 History/Version: v1.0
 Called Functions: b_getc, b_retract, b_setmark, b_getcoffset, b_retract_to_mark,
-b_size, b_addc, get_next_state, b_mark, b_create, b_free
+				  b_size, b_addc, get_next_state, b_mark, b_create, b_free
 Parameters: -> sc_buf (input buffer)
-					     type: BufferDescriptor
+			   type: BufferDescriptor
 Return Value: Token (representing the corresponding token that was recognized)
 Algorithm:
---------------------------------TOKEN DRIVEN -------------------------------------
+			--------------------------------TOKEN DRIVEN -------------------------------------
 
--> Character a newspace character? Increase line number, and continue.
--> Character a whitespace or separator character?
-    -> Yes: Assign token parameters and return.
--> Character a concatenation, assignment, arithmetic or conditional operator?
-    -> Yes: Assign token parameters and return.
--> Character a '.' ?
-    -> Yes: Go into token processing for logical operators to determine if the
-       lexeme is a .AND. or .OR. operator.
--> Character a ' " ' ?
-    -> Yes: Go into token processing for strings
--> If illegal string, process in appropriate way and return error token.
--> If legal string, add it to string literal table buffer.
+			-> Character a newspace character? Increase line number, and continue.
+			-> Character a whitespace or separator character?
+				-> Yes: Assign token parameters and return.
+			-> Character a concatenation, assignment, arithmetic or conditional operator?
+				-> Yes: Assign token parameters and return.
+			-> Character a '.' ?
+				-> Yes: Go into token processing for logical operators to determine if the
+						lexeme is a .AND. or .OR. operator.
+			-> Character a ' " ' ?
+				-> Yes: Go into token processing for strings
+					-> If illegal string, process in appropriate way and return error token.
+					-> If legal string, add it to string literal table buffer.
 
----------------------------- TRANSITION TABLE DRIVEN -----------------------------
+			---------------------------- TRANSITION TABLE DRIVEN -----------------------------
 
--> Character is [a-zA-Z] or [0-9]?
-|------------------------|
-|- FINITE STATE MACHINE -|
-|------------------------|
-|-----------------------------------------------------------------------------|
-|-> Set state to 0.                                                           |
-|-> 1. Get the next state by calling get_next_state().
-|-> 2. Check if the state is NOAS
-|	-> If yes skip loop and go to accepting state
-|	-> Else enter loop and continue to #3
-|-> 3. Get the next character using b_getc().                                 |
-|-> 4. If the stateType is NOAS, go back up to step 1. If it's anything else, |
-|      leave the FSM and call an accepting state function based on what state |
-|      you're in.                                                             |
-|-----------------------------------------------------------------------------|
--> If state is accepting with retract, retract the buffer using b_retract().
--> Create temp buffer that is 1 more character in size than recorded lexeme.
--> If there's a run time error in creating the buffer, handle it here.
--> Retract getc_offset to the mark that was previously set at beginning of
-	 lexeme.
--> Copy lexeme from lexstart to lexend from input buffer into temp buffer using
-	 b_addc() and add '\0' to make buffer a c type string.
--> Call acceptor state function from callback table depending on what state
-	 you're in.
--> For any other character, generate an error token consisting of the erroneous
-   character, followed by a '\0' to make it a c-style string and return the token.
+			-> Character is [a-zA-Z] or [0-9]?
+				|------------------------|
+				|- FINITE STATE MACHINE -|
+				|------------------------|
+				|-----------------------------------------------------------------------------|
+				|-> Set state to 0.                                                           |
+				|-> 1. Get the next state by calling get_next_state().
+				|-> 2. Check if the state is NOAS
+				|	-> If yes skip loop and go to accepting state
+				|	-> Else enter loop and continue to #3
+				|-> 3. Get the next character using b_getc().                                 |
+				|-> 4. If the stateType is NOAS, go back up to step 1. If it's anything else, |
+				|      leave the FSM and call an accepting state function based on what state |
+				|      you're in.                                                             |
+				|-----------------------------------------------------------------------------|
+				-> If state is accepting with retract, retract the buffer using b_retract().
+				-> Create temp buffer that is 1 more character in size than recorded lexeme.
+					-> If there's a run time error in creating the buffer, handle it here.
+				-> Retract getc_offset to the mark that was previously set at beginning of
+				   lexeme.
+				-> Copy lexeme from lexstart to lexend from input buffer into temp buffer using
+				   b_addc() and add '\0' to make buffer a c type string.
+				-> Call acceptor state function from callback table depending on what state
+				   you're in.
+			-> For any other character, generate an error token consisting of the erroneous
+			   character, followed by a '\0' to make it a c-style string and return the token.
 *********************************************************************************************/
 Token mlwpar_next_token(Buffer * sc_buf)
 {
@@ -162,31 +163,31 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		/* Special case switch */
 		switch (c){
 			/* EOF cases */
-		case 255: case '\0': case '0xFF': case EOF: t.code = SEOF_T; return t;
+			case 255: case '\0': case '0xFF': case EOF: t.code = SEOF_T; return t;
 			/* Space case - ignore and continue */
-		case ' ': continue;
+			case ' ': continue;
 			/* Horizontal tab case - ignore and continue */
-		case '\t': continue;
+			case '\t': continue;
 			/* Vertical tab case - ignore and continue */
-		case '\v': continue;
+			case '\v': continue;
 			/* New line increment - ignore and continue */
-		case '\n': line++; continue;
+			case '\n': line++; continue;
 			/* Right parenthesis token */
-		case ')': t.code = RPR_T; return t;
+			case ')': t.code = RPR_T; return t;
 			/* Left parenthesis token */
-		case '(': t.code = LPR_T; return t;
+			case '(': t.code = LPR_T; return t;
 			/* Left brace token */
-		case '{': t.code = LBR_T; return t;
+			case '{': t.code = LBR_T; return t;
 			/* Right brace token */
-		case '}': t.code = RBR_T; return t;
+			case '}': t.code = RBR_T; return t;
 			/* Comma token */
-		case ',': t.code = COM_T; return t;
+			case ',': t.code = COM_T; return t;
 			/* Semi colon token */
-		case ';': t.code = EOS_T; return t;
+			case ';': t.code = EOS_T; return t;
 			/* String concatination token */
-		case '#': t.code = SCC_OP_T; return t;
+			case '#': t.code = SCC_OP_T; return t;
 			/* Other case */
-		default: break;
+			default: break;
 		}
 
 		/****************************************************************
@@ -234,26 +235,106 @@ Token mlwpar_next_token(Buffer * sc_buf)
 		/****************************************************************
 		*						  Logical Token					        *
 		****************************************************************/
-
-		if (c == '.') {
+		/* And or OR operator token */
+		if (c == '.'){
 			/* Set mark to current get c offset position */
 			b_setmark(sc_buf, b_getcoffset(sc_buf));
-			if ((b_getc(sc_buf) == 'A') &&
-				(b_getc(sc_buf) == 'N') &&
-				(b_getc(sc_buf) == 'D') &&
-				(b_getc(sc_buf) == '.')) {
-				t.code = LOG_OP_T;
-				t.attribute.log_op = AND;
-				return t;
+			/* Get next character */
+			c = b_getc(sc_buf);
+			/* Check for AND operator */
+			if (c == 'A'){
+				/* Get next character */
+				c = b_getc(sc_buf);
+				if (c == 'N'){
+					/* Get next character */
+					c = b_getc(sc_buf);
+					if (c == 'D'){
+						/* Get next character */
+						c = b_getc(sc_buf);
+						if (c == '.'){
+							t.code = LOG_OP_T; t.attribute.log_op = AND; return t;
+						}
+						/* No period */
+						else {
+							/* Retract to mark at beginning '.' */
+							b_retract_to_mark(sc_buf);
+							/* Get '.' again */
+							b_retract(sc_buf);
+							/* Create error token */
+							c = b_getc(sc_buf);
+							t.code = ERR_T;
+							t.attribute.err_lex[0] = c;
+							t.attribute.err_lex[1] = '\0';
+							return t;
+						}
+					}
+					/* No 'D' */
+					else {
+						/* Retract to mark at beginning '.' */
+						b_retract_to_mark(sc_buf);
+						/* Get '.' again */
+						b_retract(sc_buf);
+						/* Create error token */
+						c = b_getc(sc_buf);
+						t.code = ERR_T;
+						t.attribute.err_lex[0] = c;
+						t.attribute.err_lex[1] = '\0';
+						return t;
+					}
+				}
+				/* No 'N' */
+				else {
+					/* Retract to mark at beginning '.' */
+					b_retract_to_mark(sc_buf);
+					/* Get '.' again */
+					b_retract(sc_buf);
+					/* Create error token */
+					c = b_getc(sc_buf);
+					t.code = ERR_T;
+					t.attribute.err_lex[0] = c;
+					t.attribute.err_lex[1] = '\0';
+					return t;
+				}
 			}
-			b_retract_to_mark(sc_buf);
-			if ((b_getc(sc_buf) == 'O') &&
-				(b_getc(sc_buf) == 'R') &&
-				(b_getc(sc_buf) == '.')) {
-				t.code = LOG_OP_T;
-				t.attribute.log_op = OR;
-				return t;
+			/* Check for OR operator */
+			else if (c == 'O'){
+				/* Get next character */
+				c = b_getc(sc_buf);
+				if (c == 'R'){
+					/* Get next character */
+					c = b_getc(sc_buf);
+					if (c == '.'){
+						t.code = LOG_OP_T; t.attribute.log_op = OR; return t;
+					}
+					/* No '.' */
+					else {
+						/* Retract to mark at beginning '.' */
+						b_retract_to_mark(sc_buf);
+						/* Get '.' again */
+						b_retract(sc_buf);
+						/* Create error token */
+						c = b_getc(sc_buf);
+						t.code = ERR_T;
+						t.attribute.err_lex[0] = c;
+						t.attribute.err_lex[1] = '\0';
+						return t;
+					}
+				}
+				/* No 'R' */
+				else {
+					/* Retract to mark at beginning '.' */
+					b_retract_to_mark(sc_buf);
+					/* Get '.' again */
+					b_retract(sc_buf);
+					/* Create error token */
+					c = b_getc(sc_buf);
+					t.code = ERR_T;
+					t.attribute.err_lex[0] = c;
+					t.attribute.err_lex[1] = '\0';
+					return t;
+				}
 			}
+			/* No 'A' or 'O' */
 			else {
 				/* Retract to mark at beginning '.' */
 				b_retract_to_mark(sc_buf);
@@ -266,8 +347,7 @@ Token mlwpar_next_token(Buffer * sc_buf)
 				t.attribute.err_lex[1] = '\0';
 				return t;
 			}
-		}
-
+		} /* End logical tokens if */
 
 		/****************************************************************
 		*						  Comment Token					        *
@@ -334,12 +414,10 @@ Token mlwpar_next_token(Buffer * sc_buf)
 			b_setmark(sc_buf, b_getcoffset(sc_buf));
 			/* Loop and check for next '"' */
 			/* If error aka 255 was found create error token and return */
-
+			
 			do {
 				/* Get next character and check if its valid */
 				c = b_getc(sc_buf);
-
-				if (c == '\n') ++line;
 
 				/* If end of file token */
 				if (c == 255 || c == '\0'){
@@ -444,7 +522,7 @@ Token mlwpar_next_token(Buffer * sc_buf)
 			lexend = b_getcoffset(sc_buf);
 			lexstart = b_mark(sc_buf);
 			/* Create temp lexeme buffer */
-			if ((lex_buf = b_create((lexend - lexstart) + 1, 0, 'f')) == NULL){
+			if ((lex_buf = b_create(lexend - lexstart, 5, 'a')) == NULL){
 				t.code = ERR_T;
 				strcpy(t.attribute.err_lex, "RUN TIME ERROR: ");
 				scerrnum = 500; /* Random error value to check in main */
@@ -460,15 +538,11 @@ Token mlwpar_next_token(Buffer * sc_buf)
 			/* Make a c type string to know when the buffer stops when passed to state */
 			b_addc(lex_buf, '\0');
 
-			char* tempArray = (char*)malloc(sizeof(char)*b_size(lex_buf));
-			strcpy(tempArray, b_cbhead(lex_buf));
+			/* Place new lexeme in corresponding state */
+			t = (*aa_table[state])(b_cbhead(lex_buf));
 
 			/* Free up buffer */
 			b_free(lex_buf);
-
-			/* Place new lexeme in corresponding state */
-			t = (*aa_table[state])(tempArray);
-
 			return t;
 		}
 
@@ -486,22 +560,22 @@ Author: Svillen Ranev
 History/Version: v1.0
 Called Functions: char_class, assert
 Parameters: state - is the current state of the transition table
-					  c - symbol to process
-					  *accept - holds the next function to call
+			c - symbol to process
+			*accept - holds the next function to call
 Return Value: the index of the next function to use
 Algorithm: -> Calculates the column from transition table
-					 -> Retrieves state in which to move next
-					 -> Stores the value in accept of what the state class is
-					 -> Returns the index of next function to use
+		   -> Retrieves state in which to move next
+		   -> Stores the value in accept of what the state class is
+		   -> Returns the index of next function to use
 *****************************************************************************/
 int get_next_state(int state, char c, int *accept){
 	int col;
 	int next;
 	col = char_class(c);
 	next = st_table[state][col];
-	/*#ifdef DEBUG
+/*#ifdef DEBUG
 	printf("Input symbol: %c Row: %d Column: %d Next: %d \n", c, state, col, next);
-	#endif*/
+#endif*/
 
 	assert(next != IS);
 
@@ -524,7 +598,7 @@ Called Functions: isLetter
 Parameters: char c -> Character to check to see the corresponding column
 Return Value: Column number
 Algorithm: -> Checks if letter, 0, 1-7, 8-9, '.', '%' or other and returns the
-						  column that corresponds to the table.
+			  column that corresponds to the table.
 *****************************************************************************/
 int char_class(char c){
 	/* Casts to unsigned character of character parameter */
@@ -540,7 +614,7 @@ int char_class(char c){
 
 /******************************aa_func02()************************************
 Purpose: Accepting function for state 02 of the transition table. Processes the
-lexeme into either a keyword or AVID token.
+		 lexeme into either a keyword or AVID token.
 Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: iskeyword(), strlen(), strcpy(), strncpy()
@@ -548,64 +622,61 @@ Parameters: -> lexeme (input string)
 type: character array
 Return Value: Token (representing processed keyword or AVID token)
 Algorithm: -> If lexeme comes back as one of the keywords, record the token's code
-						  and proper attribute, and then return it.
-					 -> Not a keyword...
-							-> If lexeme is longer than VID_LEN...
-							-> Copy its contents into a temp character array up to VID_LEN characters.
-							-> Add a terminating character '\0' to the end of the array.
-							-> Copy the overall AVID into the token attribute's vid_lex array.
-							-> Record the token code and proper attribute, and return the token.
-					 -> If lexeme is shorter or equal to VID_LEN
-							-> Copy the lexeme into the token attribute's vid_lex array.
-							-> Add a terminating character '\0' to the end of the array.
-							-> Record the token code and return the token.
+			  and proper attribute, and then return it.
+		   -> Not a keyword...
+			   -> If lexeme is longer than VID_LEN...
+				   -> Copy its contents into a temp character array up to VID_LEN characters.
+				   -> Add a terminating character '\0' to the end of the array.
+				   -> Copy the overall AVID into the token attribute's vid_lex array.
+				   -> Record the token code and proper attribute, and return the token.
+			   -> If lexeme is shorter or equal to VID_LEN
+				   -> Copy the lexeme into the token attribute's vid_lex array.
+				   -> Add a terminating character '\0' to the end of the array.
+				   -> Record the token code and return the token.
 *****************************************************************************/
 Token aa_func02(char lexeme[]) {
 
-	Token t; /* Final token to be returned */
-	char lexPrep[VID_LEN + 1] = "\0"; /* Prepare lexeme for symbol table */
-	int installResult = 0; /* Result of trying to install lexeme in symbol table */
-	int keywordNum = iskeyword(lexeme); /* Queries to see if lexeme is a keyword */
-	int lexLength = strlen(lexeme);
+  Token t; /* Final token to be returned */
+  char lexPrep[VID_LEN+1] = "\0"; /* Prepare lexeme for symbol table */
+  int installResult = 0; /* Result of trying to install lexeme in symbol table */
+  int keywordNum = iskeyword(lexeme); /* Queries to see if lexeme is a keyword */
+  int lexLength = strlen(lexeme);
 
-	/* Lexeme ends up being a keyword */
-	if (keywordNum >= 0) {
-		t.code = KW_T;
-		t.attribute.kwt_idx = keywordNum;
-		free(lexeme);
-	}
-	/* Lexeme is not a keyword */
-	else {
-		/* Lexeme longer than VID_LEN */
-		if (lexLength > VID_LEN) {
+  /* Lexeme ends up being a keyword */
+  if (keywordNum >= 0) {
+    t.code = KW_T;
+    t.attribute.kwt_idx = keywordNum;
+  }
+  /* Lexeme is not a keyword */
+  else {
+    /* Lexeme longer than VID_LEN */
+    if (lexLength > VID_LEN) {
 
-			strncpy(lexPrep, lexeme, (VID_LEN - 1)*sizeof(char));
-			lexPrep[VID_LEN] = '\0';
-			lexPrep[VID_LEN - 1] = '%';
-			free(lexeme);
+      strncpy(lexPrep,lexeme,(VID_LEN-1)*sizeof(char));
+      lexPrep[VID_LEN] = '\0';
+      lexPrep[VID_LEN-1] = '%';
 
-			/* Try to add AVID to symbol table */
-			addAVIDToSymTable(lexPrep, &installResult);
+      /* Try to add AVID to symbol table */
+      addAVIDToSymTable(lexPrep,&installResult);
 
-			/* Set up token */
-			t.attribute.vid_offset = installResult;
-			t.code = AVID_T;
-		}
-		/* Lexeme shorter or equal to VID_LEN */
-		else {
-			strcpy(lexPrep, lexeme);
-			lexPrep[lexLength] = '\0';
-			free(lexeme);
+      /* Set up token */
+      t.attribute.vid_offset = installResult;
+      t.code = AVID_T;
+    }
+    /* Lexeme shorter or equal to VID_LEN */
+    else {
+      strcpy(lexPrep,lexeme);
+      lexPrep[lexLength] = '\0';
 
-			/* Try to add AVID to symbol table */
-			addAVIDToSymTable(lexPrep, &installResult);
+      /* Try to add AVID to symbol table */
+      addAVIDToSymTable(lexPrep,&installResult);
 
-			/* Set up token */
-			t.attribute.vid_offset = installResult;
-			t.code = AVID_T;
-		}
-	}
-	return t;
+      /* Set up token */
+      t.attribute.vid_offset = installResult;
+      t.code = AVID_T;
+    }
+  }
+  return t;
 }
 
 /*****************************************************************************
@@ -616,59 +687,56 @@ Called Functions: strlen, strncpy
 Parameters: char[] lexeme - is character array of token
 Return Value: Token returned by state representing a string vid
 Algorithm: -> Checks if lexeme is greater than VID_LEN
-					 -> If greater than VID_LEN...
-					 -> it sets token with corresponding attributes and code
-							with truncated string to VID_LEN and adds '%' and '\0' to
-							the end.
-					 -> If less than or equal to VID_LEN...
-							-> it copys lexeme into token and adds '\0' to the end
-							-> Returns token
+		   -> If greater than VID_LEN...
+				-> it sets token with corresponding attributes and code
+				   with truncated string to VID_LEN and adds '%' and '\0' to
+				   the end.
+		   -> If less than or equal to VID_LEN...
+				-> it copys lexeme into token and adds '\0' to the end
+		   -> Returns token
 *****************************************************************************/
 Token aa_func03(char lexeme[]) {
 
-	Token t; /* Final token to be returned */
+  Token t; /* Final token to be returned */
 
-	int lexLength = strlen(lexeme); /* Calculate length of lexeme */
-	char lexPrep[VID_LEN + 1] = "\0"; /* Prepare lexeme for symbol table */
-	int installResult = 0; /* Result of trying to install lexeme in symbol table */
+  int lexLength = strlen(lexeme); /* Calculate length of lexeme */
+  char lexPrep[VID_LEN+1] = "\0"; /* Prepare lexeme for symbol table */
+  int installResult = 0; /* Result of trying to install lexeme in symbol table */
 
-	/* Lexeme is longer than VID_LEN */
-	if (lexLength > VID_LEN) {
-		strncpy(lexPrep, lexeme, (VID_LEN - 1)*sizeof(char));
-		lexPrep[VID_LEN] = '\0';
-		lexPrep[VID_LEN - 1] = '%';
+  /* Lexeme is longer than VID_LEN */
+  if (lexLength > VID_LEN) {
+    strncpy(lexPrep,lexeme,(VID_LEN-1)*sizeof(char));
+    lexPrep[VID_LEN] = '\0';
+    lexPrep[VID_LEN-1] = '%';
 
-		/* Try to install lexeme into symbol table */
-		if ((installResult = st_install(sym_table, lexPrep, 'S', line)) == R_FAIL_ST) {
-			printf("Error: The Symbol Table is full - install failed.\n");
-			st_store(sym_table);
-			free(lexeme);
-			exit(EXIT_FAILURE);
-		}
+    /* Try to install lexeme into symbol table */
+    if ((installResult = st_install(sym_table,lexPrep,'S',line)) == R_FAIL1) {
+      printf("The Symbol Table is full - install failed.\n");
+      st_store(sym_table);
+      exit(0);
+    }
 
-		/* Set up token */
-		t.attribute.vid_offset = installResult;
-		t.code = SVID_T;
-	}
-	/* Lexeme is shorter or equal to VID_LEN */
-	else {
-		strcpy(lexPrep, lexeme);
-		lexPrep[lexLength] = '\0';
+    /* Set up token */
+    t.attribute.vid_offset = installResult;
+    t.code = SVID_T;
+  }
+  /* Lexeme is shorter or equal to VID_LEN */
+  else {
+    strcpy(lexPrep,lexeme);
+    lexPrep[lexLength] = '\0';
 
-		/* Try to install lexeme into symbol table */
-		if ((installResult = st_install(sym_table, lexPrep, 'S', line)) == R_FAIL_ST) {
-			printf("Error: The Symbol Table is full - install failed.\n");
-			st_store(sym_table);
-			free(lexeme);
-			exit(EXIT_FAILURE);
-		}
+    /* Try to install lexeme into symbol table */
+    if ((installResult = st_install(sym_table,lexPrep,'S',line)) == R_FAIL1) {
+      printf("The Symbol Table is full - install failed.\n");
+      st_store(sym_table);
+      exit(0);
+    }
 
-		/* Set up token */
-		t.attribute.vid_offset = installResult;
-		t.code = SVID_T;
-	}
-	free(lexeme);
-	return t;
+    /* Set up token */
+    t.attribute.vid_offset = installResult;
+    t.code = SVID_T;
+  }
+  return t;
 }
 /*****************************************************************************
 Purpose: Accepting function for the integer literal, decimal constant, and ZERO
@@ -678,12 +746,12 @@ Called Functions: isValidInteger, atoi, strlen, strncpy
 Parameters: char[] lexeme - is character array of token
 Return Value: Token returned by state representing a string vid
 Algorithm: -> Checks if lexeme is a valid integer
-					 -> If it is valid integer...
-					 -> it sets token with corresponding integer attributes and code
-					 -> If it is not a valid integer...
-					 -> it creates a error token with the truncated ERR_LEN length of
-							characters with '\0' at the end
-           -> Returns token
+		   -> If it is valid integer...
+				-> it sets token with corresponding integer attributes and code
+		   -> If it is not a valid integer...
+				-> it creates a error token with the truncated ERR_LEN length of
+				   characters with '\0' at the end
+		   -> Returns token
 *****************************************************************************/
 Token aa_func05(char lexeme[]){
 	/* Token created, set, and returned to main */
@@ -718,13 +786,12 @@ Token aa_func05(char lexeme[]){
 			tken.attribute.err_lex[lexlen] = '\0';
 		}
 	}
-	free(lexeme);
 	return tken;
 }
 
 /******************************aa_func08()************************************
 Purpose: Accepting function for state 08 of the transition table. Processes the
-lexeme into a float literal token.
+		 lexeme into a float literal token.
 Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: atof(), strlen(), strcpy(), strncpy()
@@ -732,18 +799,18 @@ Parameters: -> lexeme (input string)
 type: character array
 Return Value: Token (representing processed SVID token)
 Algorithm: -> Float number out of float data type range...
-							 -> If lexeme is longer than ERR_LEN...
-							  	-> Copy its contents into a temp character array up to ERR_LEN characters.
-						 	 		-> Add a terminating character '\0' to the end of the array.
-		 					 		-> Copy the overall AVID into the token attribute's vid_lex array.
-							 		-> Record the token code and proper attribute, and return the token.
-							 -> If lexeme is shorter or equal to ERR_LEN...
-							 		-> Copy the lexeme into the token attribute's vid_lex array.
-							 		-> Add a terminating character '\0' to the end of the array.
-							 		-> Add a '%' character to the second last character of the array.
-							 		-> Record the token code and return the token.
-					 -> Float number in range of float data type range...
-					 		-> Record the token's code and proper attribute, and then return it.
+				-> If lexeme is longer than ERR_LEN...
+					-> Copy its contents into a temp character array up to ERR_LEN characters.
+					-> Add a terminating character '\0' to the end of the array.
+					-> Copy the overall AVID into the token attribute's vid_lex array.
+					-> Record the token code and proper attribute, and return the token.
+				-> If lexeme is shorter or equal to ERR_LEN...
+					-> Copy the lexeme into the token attribute's vid_lex array.
+					-> Add a terminating character '\0' to the end of the array.
+					-> Add a '%' character to the second last character of the array.
+					-> Record the token code and return the token.
+		   -> Float number in range of float data type range...
+				-> Record the token's code and proper attribute, and then return it.
 *****************************************************************************/
 Token aa_func08(char lexeme[]) {
 
@@ -773,13 +840,12 @@ Token aa_func08(char lexeme[]) {
 		t.attribute.flt_value = (float)fl_conversion;
 		t.code = FPL_T;
 	}
-	free(lexeme);
 	return t;
 }
 
 /******************************aa_func11()************************************
 Purpose: Accepting function for state 11 of the transition table. Processes the
-lexeme into an octal literal token.
+		 lexeme into an octal literal token.
 Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: atool(), strlen(), strcpy(), strncpy()
@@ -787,24 +853,24 @@ Parameters: -> lexeme (input string)
 type: character array
 Return Value: Token (representing processed SVID token)
 Algorithm: -> Octal number out of short data type range...
-							 -> If lexeme is longer than ERR_LEN...
-							 -> Copy its contents into a temp character array up to ERR_LEN characters.
-							 -> Add a terminating character '\0' to the end of the array.
-							 -> Copy the overall AVID into the token attribute's vid_lex array.
-							 -> Record the token code and proper attribute, and return the token.
-							 -> If lexeme is shorter or equal to ERR_LEN...
-							 -> Copy the lexeme into the token attribute's vid_lex array.
-							 -> Add a terminating character '\0' to the end of the array.
-							 -> Add a '%' character to the second last character of the array.
-							 -> Record the token code and return the token.
-					 -> Octal number in range of short data type range...
-							 -> Record the token's code and proper attribute, and then return it.
+				-> If lexeme is longer than ERR_LEN...
+					-> Copy its contents into a temp character array up to ERR_LEN characters.
+					-> Add a terminating character '\0' to the end of the array.
+					-> Copy the overall AVID into the token attribute's vid_lex array.
+					-> Record the token code and proper attribute, and return the token.
+				-> If lexeme is shorter or equal to ERR_LEN...
+					-> Copy the lexeme into the token attribute's vid_lex array.
+					-> Add a terminating character '\0' to the end of the array.
+					-> Add a '%' character to the second last character of the array.
+					-> Record the token code and return the token.
+		   -> Octal number in range of short data type range...
+				-> Record the token's code and proper attribute, and then return it.
 *****************************************************************************/
 Token aa_func11(char lexeme[]){
 
 	Token t; /* Final token to be returned */
 	/* Hold converted value in long int, in case of over/underflow */
-	long oct_conversion = atool(lexeme);
+	long oct_conversion = atool(lexeme); 
 
 	/* Octal value is out of short data type range */
 	if (oct_conversion < SHRT_MIN || oct_conversion > SHRT_MAX) {
@@ -824,9 +890,8 @@ Token aa_func11(char lexeme[]){
 	/* Octal value within short data type range */
 	else {
 		t.attribute.int_value = (short)oct_conversion;
-		t.code = INL_T;
+		t.code = INL_T; 
 	}
-	free(lexeme);
 	return t;
 }
 
@@ -838,13 +903,13 @@ Called Functions: strcpy
 Parameters: char lexeme[] holds lexeme with error text
 Return Value: Returns error token
 Algorithm: -> Sets error token code to error code...
-						  -> If lexeme length is greater than ERR_LEN...
-					 	  	 -> Copy ERR_LEN of characters into err_lex of union
-					 			 -> Make err lex a valid c string
-					 		-> Else lexeme length is less than ERR_LEN...
-					 			 -> Copy length of lexeme into err lex
-					  		 -> Make err lex a valid c string
-							-> Return token created
+		   -> If lexeme length is greater than ERR_LEN...
+				-> Copy ERR_LEN of characters into err_lex of union
+				-> Make err lex a valid c string
+		   -> Else lexeme length is less than ERR_LEN...
+				-> Copy length of lexeme into err lex
+				-> Make err lex a valid c string
+		   -> Return token created
 *****************************************************************************/
 Token aa_func12(char lexeme[]){
 	/* Token created and set to return to main */
@@ -866,7 +931,6 @@ Token aa_func12(char lexeme[]){
 		/* Add character to make it a c type string */
 		tken.attribute.err_lex[lexlen] = '\0';
 	}
-	free(lexeme);
 	return tken;
 }
 
@@ -890,8 +954,8 @@ History/Version: v1.0
 Called Functions: strcmp
 Parameters: char * kw_lexeme contains a string to check against keyword table
 Return Value: Returns either the index of keyword, or R_FAIL1.
-Algorithm: -> Loops and checks lexeme against keyword table and returns index
-						  if found and R_FAIL1 if not found.
+Algorithm: -> Loops and checks lexeme against keyword table and returns index 
+			  if found and R_FAIL1 if not found.
 *****************************************************************************/
 int iskeyword(char * kw_lexeme){
 	/* Index of keyword */
@@ -911,8 +975,8 @@ Called Functions: None
 Parameters: char c -> Character to check if valid
 Return Value: true 1, false 0
 Algorithm: -> Checks if values are from 65 - 90 & 97 - 122
-				   -> 65 = a to 90 = z
-					 -> 97 = A to 122 = Z
+		   -> 65 = a to 90 = z
+		   -> 97 = A to 122 = Z
 *****************************************************************************/
 int isLetter(unsigned char c){
 	return (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
@@ -939,7 +1003,7 @@ Called Functions: atol
 Parameters: char * lexeme contains integer number to check
 Return Value: Returns 1 if valid number and 0 if not valid
 Algorithm: -> Converts lexeme to long and checks if long number is greater than
-					    short max or less than short min.
+			  short max or less than short min.
 *****************************************************************************/
 int isValidInteger(char * lexeme){
 	/* Converted value of integer string */
@@ -949,41 +1013,41 @@ int isValidInteger(char * lexeme){
 
 /******************************addAVIDToSymTable()************************************
 Purpose: Utility function that encapsulates repeated logic to add AVID lexemes
-into the symbol table database.
+         into the symbol table database. 
 Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: exit(), st_store()
 Parameters: -> lexPrep (input string)
-type: character array
--> installResult (output parameter, records result of st_install() call)
-type: int*
+               type: character array
+            -> installResult (output parameter, records result of st_install() call)
+               type: int*
 Return Value: ---
-Algorithm: -> If first character of lexeme is one of {i,o,d,w}, install lexeme into
-							symbol table database as an integer AVID.
-					 -> If symbol table is full, print message notifying user of the situation,
-					 	  call st_store, and exit(1) from the process.
-					 -> Otherwise, install lexeme into symbol table database as a FPL AVID.
-					 -> If symbol table is full, print message notifying user of the situation,
-					 		call st_store, and exit(1) from the process.
+Algorithm: -> If first character of lexeme is one of {i,o,d,w}, install lexeme into 
+              symbol table database as an integer AVID.
+               -> If symbol table is full, print message notifying user of the situation,
+                  call st_store, and exit(1) from the process.
+           -> Otherwise, install lexeme into symbol table database as a FPL AVID.
+               -> If symbol table is full, print message notifying user of the situation,
+                  call st_store, and exit(1) from the process.           
 ***************************************************************************************/
-void addAVIDToSymTable(char lexPrep[], int *installResult) {
-	if (lexPrep[0] == 'i' || lexPrep[0] == 'o'
-		|| lexPrep[0] == 'd' || lexPrep[0] == 'w') {
-		/* Try to install lexeme into symbol table */
-		if ((*installResult = st_install(sym_table, lexPrep, 'I', line)) == R_FAIL_ST) {
-			printf("Error: The Symbol Table is full - install failed.\n");
-			st_store(sym_table);
-			exit(EXIT_FAILURE);
-		}
-	}
-	else {
-		/* Try to install lexeme into symbol table */
-		if ((*installResult = st_install(sym_table, lexPrep, 'F', line)) == R_FAIL_ST) {
-			printf("Error: The Symbol Table is full - install failed.\n");
-			st_store(sym_table);
-			exit(EXIT_FAILURE);
-		}
-	}
+void addAVIDToSymTable(char lexPrep[],int *installResult) {
+  if (lexPrep[0] == 'i' || lexPrep[0] == 'o' 
+      || lexPrep[0] == 'd' || lexPrep[0] == 'w') {
+    /* Try to install lexeme into symbol table */
+    if ((*installResult = st_install(sym_table,lexPrep,'I',line)) == R_FAIL1) {
+      printf("The Symbol Table is full - install failed.\n");
+      st_store(sym_table);
+      exit(1);
+    }
+  }
+  else {
+    /* Try to install lexeme into symbol table */
+    if ((*installResult = st_install(sym_table,lexPrep,'F',line)) == R_FAIL1) {
+      printf("The Symbol Table is full - install failed.\n");
+      st_store(sym_table);
+      exit(1);
+    }
+  }
 }
 
 

@@ -1,24 +1,17 @@
-/*****************************************************************************
-File Name: platy_tt.c
-Compiler: Visual Studio 2013 Compiler
-Author: Gabriel Bourget
-Course: Computer Engineering Technology
-Assignment: Assignment 3 - Symbol Table
-Date: November 24th, 02016
-Professor: Svillen Ranev
-Purpose: Support header file for scanner implementation
-Function List: main(), err_printf(), get_filesize(), garbage_collect()
-*****************************************************************************/
+/* File name: platy.c
+* Purpose:This is the main program for Assignment#4 - Platypus Parser
+*  CST8152 - Compilers
+*  Version: 1.16.02
+*  Author: Svillen Ranev
+*  Date: 8 November 2016
+*/
 
 /* The #define _CRT_SECURE_NO_WARNINGS should be used in MS Visual Studio projects
 * to suppress the warnings about using "unsafe" functions like fopen()
 * and standard sting library functions defined in string.h.
-* The define does not have any effect in other compiler projects.
+* The define does not have any effect in other compilers  projects.
 */
 #define _CRT_SECURE_NO_WARNINGS
-#define _CRTDBG_MAP_ALLOC
-
-#include <crtdbg.h>
 
 #include <stdio.h>
 #include <stdlib.h> /* Constants for calls to exit()*/
@@ -28,10 +21,9 @@ Function List: main(), err_printf(), get_filesize(), garbage_collect()
 
 #include "buffer.h"
 #include "token.h"
+#include "parser.h"
 #include "stable.h" /*Do not remove this line. SiR */
 #include "stable.h" /*Do not remove this line. SiR */
-
-/* constant definitions */
 /* Input buffer parameters */
 #define INIT_CAPACITY 200 /* initial buffer capacity */
 #define INC_FACTOR 15       /* increment factor */
@@ -49,36 +41,35 @@ Function List: main(), err_printf(), get_filesize(), garbage_collect()
 #endif
 
 /* Global objects - variables */
-
 static Buffer *sc_buf; /* pointer to input (source) buffer */
 Buffer * str_LTBL; /* this buffer implements String Literal Table */
 /* it is used as a repository for string literals */
 int scerrnum;     /* run-time error number = 0 by default (ANSI) */
 STD sym_table;    /* Symbol Table Descriptor */
-
 /*external objects */
-extern int line; /* source code line numbers - defined in scanner.c */
-extern int scanner_init(Buffer * sc_buf);
-extern Token mlwpar_next_token(Buffer * sc_buf);
-/*function declarations */
+extern int synerrno; /* number of syntax errors reported by the parser */
+extern int line; /* source code line number - defined in scanner.c */
+/* function declarations (prototypes) */
+extern void parser(Buffer * sc_buf);
+/* For testing purposes */
+extern void scanner_init(Buffer * sc_buf);
+/* extern Token malpar_next_token(Buffer * sc_buf);*/
+
 void err_printf(char *fmt, ...);
 void display(Buffer *ptrBuffer);
 long get_filesize(char *fname);
 void garbage_collect(void);
 
-/*  The main function takes a PLATYPUS source file and optional switches
-*  as command line arguments.
-*  usage: stable source_file_name [-stz size][-sts:A | -sts:D]
+
+/*  main function takes a PLATYPUS source file as
+*  an argument at the command line.
+*  usage: parser source_file_name [-stz size][-sts:A | -sts:D]
 */
 int main(int argc, char ** argv){
 
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	/*_CrtSetBreakAlloc(79); */
-
 	FILE *fi;       /* input file handle */
-	Token t;        /* token produced by the scanner */
 	int loadsize = 0; /*the size of the file loaded in the buffer */
-	int st_def_size = ST_DEF_SIZE; /* Sumbol Table default size */
+	int st_def_size = ST_DEF_SIZE; /* Symbol Table default size */
 	char sort_st = 0;      /*Symbol Table sort switch */
 	int ansi_c = !ANSI_C; /* ANSI C flag */
 	/* Check if the compiler option is set to compile ANSI C */
@@ -89,13 +80,13 @@ int main(int argc, char ** argv){
 		exit(1);
 	}
 
-	/*check for correct arrguments - source file name */
+	/*check for correct arguments - source file name */
 	if (argc <= 1){
 		/* __DATE__, __TIME__, __LINE__, __FILE__ are predefined preprocessor macros*/
 		err_printf("Date: %s  Time: %s", __DATE__, __TIME__);
 		err_printf("Runtime error at line %d in file %s", __LINE__, __FILE__);
 		err_printf("%s%s%s", argv[0], ": ", "Missing source file name.");
-		err_printf("%s%s%s", "Usage: ", "stable", "  source_file_name [-stz size][-sts:A | -sts:D]");
+		err_printf("%s%s%s", "Usage: ", "parser", "  source_file_name [-stz size][-sts:A | -sts:D]");
 		exit(EXIT_FAILURE);
 	}
 
@@ -106,7 +97,6 @@ int main(int argc, char ** argv){
 			err_printf("%s%s\b\b\b\b%s", "Usage: ", argv[0], " source file name [-stz size][-sts:A | -sts:D]");
 			exit(EXIT_FAILURE);
 		}
-		/*set sort switch*/
 		if (strcmp(argv[2], "-sts:A"))
 			sort_st = 'D';
 		else
@@ -146,13 +136,11 @@ int main(int argc, char ** argv){
 			err_printf("%s%s\b\b\b\b%s", "Usage: ", argv[0], " source file name [-stz size][-sts:A | -sts:D]");
 			exit(EXIT_FAILURE);
 		}
-
 		if (strcmp(argv[4], "-sts:A"))
 			sort_st = 'D';
 		else
 			sort_st = 'A';
 	}
-
 	/* create a source code input buffer - multiplicative mode */
 	sc_buf = b_create(INIT_CAPACITY, INC_FACTOR, 'm');
 	if (sc_buf == NULL){
@@ -190,7 +178,6 @@ int main(int argc, char ** argv){
 	if (b_pack(sc_buf)){
 		display(sc_buf);
 	}
-
 	/* create string Literal Table */
 	str_LTBL = b_create(INIT_CAPACITY, INC_FACTOR, 'a');
 	if (str_LTBL == NULL){
@@ -201,36 +188,30 @@ int main(int argc, char ** argv){
 	/*registrer exit function */
 	atexit(garbage_collect);
 
-	/*Testbed for the scanner and the symbol table*/
-	/* add SEOF to input program buffer*/
-	b_addc(sc_buf, '\0');
+	/*Testbed for buffer, scanner,symbol table and parser*/
 
-	/* Initialize the scanner*/
-	if (scanner_init(sc_buf)){
-		;
-		err_printf("%s%s%s", argv[0], ": ", "Empty program buffer - scanning canceled");
-		exit(1);
-	}
+	/* Initialize scanner  */
+	scanner_init(sc_buf);
+	/* Add SEOF to input buffer */
+	b_addc(sc_buf, EOF);
+	/* Start parsing */
+	printf("\nParsing the source file...\n\n");
 
-	printf("Scanning source file...\n\n");
+	parser(sc_buf);
 
-	do{
-		t = mlwpar_next_token(sc_buf);
-	} while (t.code != SEOF_T);
 	/* print Symbol Table */
-	if (sym_table.st_size){
-		st_print(sym_table);
-		if (sort_st){
-			printf("\nSorting symbol table...\n");
-			st_sort(sym_table, sort_st);
-			st_print(sym_table);
-		}
+	/*
+	if(sym_table.st_size && sort_st){
+	st_print(sym_table);
+	if(sort_st){
+	printf("\nSorting symbol table...\n");
+	st_sort(sym_table,sort_st);
+	st_print(sym_table);
 	}
-	/*Test bed for type and update functions */
-
-	/*Test bed for bonus*/
-	return (0); /* same effect as exit(EXIT_SUCCESS) */
-}
+	}
+	*/
+	return (EXIT_SUCCESS); /* same effect as exit(0) */
+}/*end of main */
 
 /* Error printing function with variable number of arguments
 */
@@ -269,18 +250,18 @@ void display(Buffer *ptrBuffer){
 	printf("\nPrinting input buffer parameters:\n\n");
 	printf("The capacity of the buffer is:  %d\n", b_capacity(ptrBuffer));
 	printf("The current size of the buffer is:  %d\n", b_size(ptrBuffer));
-	printf("The reallocation flag is:   %d\n", b_rflag(ptrBuffer));
 	printf("\nPrinting input buffer contents:\n\n");
 	b_print(ptrBuffer);
 }
 
-/* The function frees all dynamically allocated memory.
-This function is always called
-despite how the program terminates - normally or abnormally.
-*/
+/* the functions frees the allocated memory */
 void garbage_collect(void){
+	if (synerrno)
+		printf("\nSyntax errors: %d\n", synerrno);
 	printf("\nCollecting garbage...\n");
 	b_free(sc_buf);
 	b_free(str_LTBL);
 	st_destroy(sym_table);
 }
+
+
