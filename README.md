@@ -30,7 +30,7 @@ The source files for this project are:
  
 Source files are to be compiled into one executable, and the main function is contained in platy_bt.c. To run the program and process some of the test files, the command line template is:
 
-  - ./(executable name) (input test file) (operation mode ('f', 'a', or 'm')) > (output file name)
+  - ./(executable name) (path to input file) (operation mode ('f', 'a', or 'm')) > (path to output file)
 
 ##Part 2 - The Scanner
 In assignment 2, myself and a team member built a scanner structure that could take in the stored characters in the previous buffer structure one-by-one, and classify them into tokens. These tokens involved the different types of symbols involved in the Platypus language, such as different variable identifiers, operators, and separator characters, along with useful metadata, such as values of numeric and string variables, values of the variable names, and index in a table of keywords. This structure can be further inspected in the token.h header file. The main program that accompanies the code for this project prints out the tokens as they are returned, but they can be stored for later analysis, as they are in later projects.
@@ -48,6 +48,17 @@ Following this, the logic structure enters a finite state machine, the transitio
 When and end-of-file marker is reached in the source file, the scanner ceases to operate and returns control flow to the main function.
 
 ###Compilation and Testing
+The source files for this project are:
+  - buffer.c
+  - buffer.h
+  - scanner.c
+  - table.h
+  - token.h
+  - platy_st.c
+  
+Source files are to be compiled into one executable, and the main function is contained in platy_st.c. To run the program and process some of the test files, the command line template is:
+
+  - ./(executable name) (path to input file) > (path to output file)
 
 ##Part 3 - The Symbol Table
 In assignment 3, I was tasked with creating a symbol table data structure, which was a managed database of the variable identifiers identified during the scanning process, along with other useful information, such as the variable name, type, initial value, and line number. The symbol table descriptor is a container structure which holds a pointer to the database of symbol table variable records, a count of how many are stored, an offset number to next STVR to be added, and a pointer to a buffer structure holding all the variable names.
@@ -55,6 +66,19 @@ In assignment 3, I was tasked with creating a symbol table data structure, which
 To capture this information at the most efficient time possible, the scanner code was modified slightly. With these modifications, when the scanner code identified a token that could be identified as either an arithmetic or string variable identifier, it was incorporated into the symbol table as the scanner token was generated. These changes can be seen in scanner.c, in the the accepting state functions for arithmetic and string variable identifiers (aa_funct02() and aa_func03()).
 
 ###Compilation and Testing
+The source files for this project are:
+  - buffer.c
+  - buffer.h
+  - scanner.c
+  - table.h
+  - token.h
+  - stable.c
+  - stable.h
+  - platy_tt.c
+  
+Source files are to be compiled into one executable, and the main function is contained in platy_tt.c. To run the program and process some of the test files, the command line template is:
+
+  - ./(executable name) (path to input file) > (path to output file)
 
 ##Part4 - The Parser
 In assignment 4, the goal was to build a predictive, recursive descent LL(1) parser modeled after the Grammar of the Platypus language. The first part of the assignment involved taking this set of grammar rules, and modifying them (LR->LL transformations, left-factoring, and removal of left recursion) so that they may be coded in such a way to work within the specified parser specifications. Further reading on language grammars and parsing can be found in the lecture notes that I created during the course of the semester (stored in the root folder of this repository).
@@ -62,3 +86,18 @@ In assignment 4, the goal was to build a predictive, recursive descent LL(1) par
 Once the grammar was appropriately modified, I translated the production rules into functions (parser.c) which allowed the parser to move from token to token, identifying larger structures like if/else statements, for loops, and relational expressions. The tokens entered the parser structure upon encountering the starting token (the keyword PLATYPUS), and it recursively processed them until encountering the end-of-file token.
 
 ###Compilation and Testing
+The source files for this project are:
+  - buffer.c
+  - buffer.h
+  - scanner.c
+  - table.h
+  - token.h
+  - stable.c
+  - stable.h
+  - parser.c
+  - parser.h
+  - platy.c
+  
+Source files are to be compiled into one executable, and the main function is contained in platy.c. To run the program and process some of the test files, the command line template is:
+
+  - ./(executable name) (path to input file) > (path to output file)
