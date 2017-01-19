@@ -20,7 +20,7 @@ The project took part in four major parts:
   4. Grammar Parser
 
 ##Part 1 - The Buffer
-In assignment 1, I was tasked with creating a dynamic data structure that could establish an initial capacity and growth method. Then, as it took in the characters of a text file, it would store them into the structure's allocated memory and either grow as it reached its initial capacity by a set increment, or not at all if it was fixed to a static size. The structure consisted of a a character array to store the characters themselves, along with a handling structure that recorded and remembered different offsets, a pointer to the character array, and flags for mode and end-of-buffer. This structure can be found in the buffer.h header file.
+In assignment 1, I was tasked with creating a dynamic data structure that could establish an initial capacity and growth method. Then, as it took in the characters of a text file, it would store them into the structure's allocated memory and either grow as it reached its initial capacity by a set increment, or not at all if it was fixed to a static size. The buffer can be set to grow by a specific capacity when full (additive mode), by a certain percentage of its current size (multiplicative mode), or to stay the same mode (fixed mode). The structure consisted of a character array to store the characters themselves, along with a handling structure that recorded and remembered different offsets, a pointer to the character array, and flags for mode and end-of-buffer. This structure can be found in the buffer.h header file.
 
 ###Compilation and Testing
 The source files for this project are:
@@ -30,7 +30,7 @@ The source files for this project are:
  
 Source files are to be compiled into one executable, and the main function is contained in platy_bt.c. To run the program and process some of the test files, the command line template is:
 
-  - ./\<executable_name> 
+  - ./(executable name) (input test file) (operation mode ('f', 'a', or 'm')) > (output file name)
 
 ##Part 2 - The Scanner
 In assignment 2, myself and a team member built a scanner structure that could take in the stored characters in the previous buffer structure one-by-one, and classify them into tokens. These tokens involved the different types of symbols involved in the Platypus language, such as different variable identifiers, operators, and separator characters, along with useful metadata, such as values of numeric and string variables, values of the variable names, and index in a table of keywords. This structure can be further inspected in the token.h header file. The main program that accompanies the code for this project prints out the tokens as they are returned, but they can be stored for later analysis, as they are in later projects.
