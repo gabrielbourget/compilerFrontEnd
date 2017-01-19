@@ -23,13 +23,13 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: malloc(), b_create()
 Parameters: -> st_size (Number of STVR elements to put in symbol table)
-			type: int
+							 type: int
 Return Value: STD, representing created symbol table descriptor
 Algorithm: -> Declares a local STD.
-		   -> Allocates dynamic memory for an array of STVR of size st_size.
-		   -> Initialize the plsBD pointer to a new buffer structure.
-		   -> If creation of STD is successful, set its size to st_size.
-		   -> Return STD structure that was created.
+				   -> Allocates dynamic memory for an array of STVR of size st_size.
+				   -> Initialize the plsBD pointer to a new buffer structure.
+				   -> If creation of STD is successful, set its size to st_size.
+				   -> Return STD structure that was created.
 *********************************************************************************/
 STD st_create(int st_size) {
 
@@ -59,30 +59,30 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: st_lookup(), b_addc(), b_rflag(), b_cbhead(), st_incoffset()
 Parameters: -> sym_table (symbol table descriptor)
-type: STD
--> lexeme (lexeme to be installed in symbol table)
-type: char*
--> line (line number of first occurence)
-type: int
+							 type: STD
+						-> lexeme (lexeme to be installed in symbol table)
+							 type: char*
+						-> line (line number of first occurence)
+							 type: int
 Return Value: int, representing offset location of lexeme, or -1 if table is full
 Algorithm: -> Call the st_lookup() function to search for the lexeme (var name) in
-			  the symbol table.
+			  			the symbol table.
 		       -> If the lexeme is not found, install the new one at the current st_offset.
-		   -> Set plex and o_line to their corresponding values and that status field to
-	          its default value.
-		   -> Set the data type indicator to a value corresponding to variable type
-		      represented by the formal parameter 'type'.
-		   -> The value for the type parameter:
-		       -> I for integer.
-			   -> F for floating point literal.
-			   -> S for string.
-		           -> If the variable is of type 'string', set the update flag to 1.
-		   -> Set the 'i_value' to 0 for integer/floating point literals, and to -1 for
-		      strings.
-		   -> Increment st_offset of global sym_table by one.
-		   -> If the input lexeme is found, return the offset to its current STVR.
-		   -> If the symbol table is full, return -1.
-		   -> Return the current st_offset of the entry.
+		   		 -> Set plex and o_line to their corresponding values and that status field to
+	            its default value.
+		   		 -> Set the data type indicator to a value corresponding to variable type
+		      	  represented by the formal parameter 'type'.
+		   		 -> The value for the type parameter:
+	 		        -> I for integer.
+			   	 		-> F for floating point literal.
+			   	 		-> S for string.
+		       -> If the variable is of type 'string', set the update flag to 1.
+		   		 -> Set the 'i_value' to 0 for integer/floating point literals, and to -1 for
+		          strings.
+		   		 -> Increment st_offset of global sym_table by one.
+				   -> If the input lexeme is found, return the offset to its current STVR.
+				   -> If the symbol table is full, return -1.
+				   -> Return the current st_offset of the entry.
 ******************************************************************************************/
 int st_install(STD sym_table, char* lexeme, char type, int line) {
 
@@ -161,14 +161,14 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: strcmp()
 Parameters: -> sym_table (symbol table descriptor)
-		       type: STD
-			-> lexeme (lexeme to be installed in symbol table)
-			   type: char*
+		       		 type: STD
+						-> lexeme (lexeme to be installed in symbol table)
+			   			 type: char*
 Return Value: int, representing table position of lexeme
 Algorithm: -> Start search backwards, beginning from last entry in the STVR array.
-		   -> If the lexeme is found, return the offset of its location from the
-			  beginning of the array.
-		   -> If not, return -1.
+		   	 	 -> If the lexeme is found, return the offset of its location from the
+			  			beginning of the array.
+		   		 -> If not, return -1.
 *********************************************************************************/
 int st_lookup(STD sym_table, char *lexeme) {
 
@@ -192,17 +192,17 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: ---
 Parameters: -> sym_table (symbol table descriptor)
-			   type: STD
-			-> vid_offset (position in symbol table to access)
-		       type: int
-			-> v_type (variable type to modify to)
-			   type: char
+						   type: STD
+						-> vid_offset (position in symbol table to access)
+					     type: int
+						-> v_type (variable type to modify to)
+						   type: char
 Return Value: int, representing success or failure of update
 Algorithm: -> Check update flag of variable record's status field.
-		   -> If it is equal to 1, the type has been updated already, return -1.
-		   -> If not, update the data type indicator of the status field.
-		   -> Set the update flag.
-		   -> Return vid_offset.
+				   -> If it is equal to 1, the type has been updated already, return -1.
+				   -> If not, update the data type indicator of the status field.
+				   -> Set the update flag.
+				   -> Return vid_offset.
 ***************************************************************************************/
 int st_update_type(STD sym_table, int vid_offset, char v_type) {
 
@@ -236,17 +236,17 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: ---
 Parameters: -> sym_table (symbol table descriptor)
-			   type: STD
-			-> vid_offset (position in symbol table to access)
-			   type: int
-		    -> i_value (value to change record to)
-			   type: InitialValue
+					     type: STD
+						-> vid_offset (position in symbol table to access)
+						   type: int
+					  -> i_value (value to change record to)
+						   type: InitialValue
 Return Value: int, representing success or failure of update
 Algorithm: -> Check update flag of variable record's status field.
 		       -> If it is equal to 1, the type has been updated already, return -1.
-		   -> If not, update the data type indicator of the status field.
-		   -> Set the update flag.
-		   -> Return vid_offset.
+				   -> If not, update the data type indicator of the status field.
+				   -> Set the update flag.
+				   -> Return vid_offset.
 ************************************************************************************************/
 int st_update_value(STD sym_table, int vid_offset, InitialValue i_value) {
 
@@ -266,12 +266,12 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: ---
 Parameters: -> sym_table (symbol table descriptor)
-			   type: STD
-		    -> vid_offset (position in symbol table to access)
-			   type: int
+					   type: STD
+				    -> vid_offset (position in symbol table to access)
+					   type: int
 Return Value: char, representing variable record type
 Algorithm: -> Return F for floating point, I for integer type, S for string type.
-		   -> Upon failure, return -1.
+				   -> Upon failure, return -1.
 ***************************************************************************************/
 char st_get_type(STD sym_table, int vid_offset) {
 
@@ -299,10 +299,10 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: free(), st_setsize(), b_free()
 Parameters: -> sym_table (symbol table descriptor)
-type: STD
+							 type: STD
 Return Value: ---
 Algorithm: -> Free dynamic memory associated with the symbol table.
-		   -> Set st_size of STD to 0.
+		   		 -> Set st_size of STD to 0.
 ***************************************************************************************/
 void st_destroy(STD sym_table) {
 
@@ -322,10 +322,10 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: fprintf()
 Parameters: -> sym_table (symbol table descriptor)
-type: STD
+							 type:  STD
 Return Value: int, number of entries or failure indicator
 Algorithm: -> Print the contents of the symbol table to the standard output.
-		   -> Return the number of entries or return -1 upon failure.
+		   		 -> Return the number of entries or return -1 upon failure.
 ***************************************************************************************/
 int st_print(STD sym_table) {
 
@@ -371,20 +371,20 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: fopen(), fprintf(), strlen(), fclose()
 Parameters: -> sym_table (symbol table descriptor)
-			   type: STD
+			  			 type: STD
 Return Value: int, number of records stored or failure indicator
 Algorithm: -> Open a file in the current directory, overwriting if it already exists.
-		   -> Print out the symbol table size.
-		   -> For each record in the symbol table database...
-		   -> Print the status field in hex format.
-		   -> Print the length of the lexeme.
-		   -> Print the lexeme itself.
-		   -> Print the line number it first appeared on.
-		   -> Print its initial value.
-		   -> Increment the number of records stored.
-		   -> Close the file.
-		   -> Print out "Symbol table stored."
-		   -> Return the number of entries or return -1 upon failure.
+				   -> Print out the symbol table size.
+				   -> For each record in the symbol table database...
+				   -> Print the status field in hex format.
+				   -> Print the length of the lexeme.
+				   -> Print the lexeme itself.
+				   -> Print the line number it first appeared on.
+				   -> Print its initial value.
+				   -> Increment the number of records stored.
+				   -> Close the file.
+				   -> Print out "Symbol table stored."
+				   -> Return the number of entries or return -1 upon failure.
 ***************************************************************************************/
 int st_store(STD sym_table) {
 
@@ -426,9 +426,9 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: strcmp()
 Parameters: -> a (pointer to element a)
-			   type: const void*
-		    -> b (pointer to element b)
-			   type: const void*
+		  			   type: const void*
+				    -> b (pointer to element b)
+			  		   type: const void*
 Return Value: int, comparison result
 Algorithm: -> Conduct lexicographic comparison of two strings.
 ******************************************************************************************/
@@ -443,9 +443,9 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: strcmp()
 Parameters: -> a (pointer to element a)
-			   type: const void*
-			-> b (pointer to element b)
-			   type: const void*
+						   type: const void*
+						-> b (pointer to element b)
+						   type: const void*
 Return Value: int, comparison result
 Algorithm: -> Conduct lexicographic comparison of two strings.
 *******************************************************************************************/
@@ -459,12 +459,13 @@ Author: Gabriel Bourget
 History/Version: v1.0
 Called Functions: qsort()
 Parameters: -> sym_table (symbol table descriptor)
-			   type: STD
-			-> s_order (sorting order, ascending or descending)
-			   type: char
+						   type: STD
+						-> s_order (sorting order, ascending or descending)
+						   type: char
 Return Value: int, sort status
 Algorithm: -> Call qsort function with context of order being asked for.
 ***************************************************************************************/
 int st_sort(STD sym_table, char s_order) {
 	return 0;
 }
+

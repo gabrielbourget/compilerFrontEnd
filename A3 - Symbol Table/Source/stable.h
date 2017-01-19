@@ -13,7 +13,7 @@ st_update_type(), st_get_type(), st_destroy(), st_print(), st_setsize(),
 st_incoffset(), st_store(), st_sort()
 Constants: ZEROS, SET_DEFAULT, CHK_LSB, SET_LSB, CHK_FLOAT, CHK_INT,
            CHK_STRING, SET0201_01, SET0201_10, SET0201_11, ALLBUTLSB,
-		   REALLOC_SET, REALLOC_NSET, R_FAIL_ST, SUCCESS, VID_LEN
+		   		 REALLOC_SET, REALLOC_NSET, R_FAIL_ST, SUCCESS, VID_LEN
 Type Declarations: InitialValue, SymbolTableVidRecord, SymbolTableDescriptor
 *****************************************************************************/
 
