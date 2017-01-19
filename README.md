@@ -80,7 +80,7 @@ Source files are to be compiled into one executable, and the main function is co
 
   - ./(executable name) (path to input file) > (path to output file)
 
-##Part4 - The Parser
+##Part 4 - The Parser
 In assignment 4, the goal was to build a predictive, recursive descent LL(1) parser modeled after the Grammar of the Platypus language. The first part of the assignment involved taking this set of grammar rules, and modifying them (LR->LL transformations, left-factoring, and removal of left recursion) so that they may be coded in such a way to work within the specified parser specifications. Further reading on language grammars and parsing can be found in the lecture notes that I created during the course of the semester (stored in the root folder of this repository).
 
 Once the grammar was appropriately modified, I translated the production rules into functions (parser.c) which allowed the parser to move from token to token, identifying larger structures like if/else statements, for loops, and relational expressions. The tokens entered the parser structure upon encountering the starting token (the keyword PLATYPUS), and it recursively processed them until encountering the end-of-file token.
