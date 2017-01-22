@@ -33,7 +33,7 @@ Source files are to be compiled into one executable, and the main function is co
   - ./(executable name) (path to input file) (operation mode ('f', 'a', or 'm')) > (path to output file)
 
 ##Part 2 - The Scanner
-In assignment 2, myself and a team member built a scanner structure that could take in the stored characters in the previous buffer structure one-by-one, and classify them into tokens. These tokens involved the different types of symbols icluded in the Platypus language, such as different variable identifiers, operators, and separator characters, along with useful metadata, such as values of numeric and string variables, values of the variable names, and index in a table of keywords. This structure can be further inspected in the token.h header file. The main program that accompanies the code for this project prints out the tokens as they are returned, but they can be stored for later analysis, as they are in later projects.
+In assignment 2,a team member and I built a scanner structure that could take in the stored characters in the previous buffer structure one-by-one, and classify them into tokens. These tokens involved the different types of symbols icluded in the Platypus language, such as different variable identifiers, operators, and separator characters, along with useful metadata, such as values of numeric and string variables, values of the variable names, and index in a table of keywords. This structure can be further inspected in the token.h header file. The main program that accompanies the code for this project prints out the tokens as they are returned, but they can be stored for later analysis, as they are in later projects.
 
 The scanner was both token driven and then transition-table driven later on. At first, it discounted the possibility an incoming set of characters being either a:
   - Newline character
@@ -43,9 +43,9 @@ The scanner was both token driven and then transition-table driven later on. At 
   - Logical operator
   - String literal
   
-Following this, the logic structure enters a finite state machine, the transitions from state to state being governed by the transition table layed out in the table.h header file.
+Following this, the logic structure entered a finite state machine to process variable identifiers and numeric values, the transitions from state to state being governed by the transition table layed out in the table.h header file.
 
-When and end-of-file marker is reached in the source file, the scanner ceases to operate and returns control flow to the main function.
+When and end-of-file marker was reached in the source file, the scanner ceased to operate and returned control flow to the main function.
 
 ###Compilation and Testing
 The source files for this project are:
@@ -61,7 +61,7 @@ Source files are to be compiled into one executable, and the main function is co
   - ./(executable name) (path to input file) > (path to output file)
 
 ##Part 3 - The Symbol Table
-In assignment 3, I was tasked with creating a symbol table data structure, which was a managed database of the variable identifiers identified during the scanning process, along with other useful information, such as the variable name, type, initial value, and line number. The symbol table descriptor is a container structure which holds a pointer to the database of symbol table variable records, a count of how many are stored, an offset number to next STVR to be added, and a pointer to a buffer structure holding all the variable names.
+In assignment 3, I was tasked with creating a symbol table data structure, which was a managed database of the variable identifiers found during the scanning process, along with other useful information, such as the variable name, type, initial value, and line number. The symbol table descriptor is a container structure which holds a pointer to the database of symbol table variable records, a count of how many are stored, an offset number to next STVR to be added, and a pointer to a buffer structure holding all the variable names.
 
 To capture this information at the most efficient time possible, the scanner code was modified slightly. With these modifications, when the scanner code identified a token that could be identified as either an arithmetic or string variable identifier, it was incorporated into the symbol table as the scanner token was generated. These changes can be seen in scanner.c, in the the accepting state functions for arithmetic and string variable identifiers (aa_funct02() and aa_func03()).
 
